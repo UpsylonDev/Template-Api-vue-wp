@@ -1,9 +1,10 @@
-require("babel-register");
-const morgan = require("morgan")("dev");
-var bodyParser = require("body-parser");
-const express = require("express");
-const mysql = require("mysql");
-const app = express();
+require("babel-register")
+const morgan = require("morgan")("dev")
+var bodyParser = require("body-parser")
+const express = require("express")
+const mysql = require("mysql")
+
+const app = express()
 
 // MIDLEWARES
 app.use(morgan);
@@ -15,16 +16,16 @@ const config = require("./config/configDb.json");
 // relier l’App à la base de données  + test
 const db = mysql.createConnection(
     {host: config.host, user: config.user, password: config.password, database: config.database}
-);
+)
 db.connect(err => {
     if (err) {
         console.log(err.message);
     } else {
         console.log("connecté à la base : " + config.database);
     }
-});
+})
 
-// Première route
+// Première route ******************************************
 app.get("/", function (req, res) {
     //  faire une requete
     db.query("SELECT * FROM api1 WHERE id=?", [1], (err, result) => {
