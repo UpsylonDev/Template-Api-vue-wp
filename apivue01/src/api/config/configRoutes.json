@@ -1,6 +1,6 @@
 {
-    "name": "/",
-    "surname": "/surname/",
-    "userEmail": "email",
+    "name": "/api/v1/userName",
+    "surname": "/api/v1/surname/",
+    "userEmail": "/api/v1/email",
     "port" : 8080
 }

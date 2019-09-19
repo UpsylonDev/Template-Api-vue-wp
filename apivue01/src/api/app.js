@@ -10,11 +10,11 @@ const app = express()
 
 // MIDLEWARES
 app.use(morgan);
+// body parser permet de réupérer du Json
 app.use(bodyParser.urlencoded({extended: false}));
 
 // Base de donnée  : récupération de la config
 const config = require("./config/configDb.json");
-
 // relier l’App à la base de données  + test
 const db = mysql.createConnection(
     {host: config.host, user: config.user, password: config.password, database: config.database}
@@ -28,19 +28,21 @@ db.connect(err => {
 })
 
 // Première route ******************************************
-app.use(configRouter.name, usersRouter)
-
+/*
+* configRouter.name =  "/"
+*/
+app.use(configRouter.userEmail, usersRouter)
 usersRouter
-    .route("/")
+    .route("/") // revient à dire : "/" === "/api/v1/email""
     .get((req, res) => {
-        //  faire une requete
+        //  faire une requete préparée 
         db.query("SELECT * FROM api1 WHERE id=?", [1], (err, result) => {
             if (err) {
                 console.log(err.message);
             } else {
-                res.send(" Résultat de la demande : " + result[0].name);
+                res.send(" Résultat de la demande : " + result[0].email);
                 // pour info rerour dans la console
-                console.log("réponse retournée au client: " + result[0].name);
+                console.log("réponse retournée au client: " + result[0].email);
             }
         })
     })
