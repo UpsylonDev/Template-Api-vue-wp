@@ -52,7 +52,7 @@ app.listen(8080, () => {
 
 // ************ DEBUG CONSOLE - A Supprimer en prod ***********
 app.use(function (req, res, next) {
-    // Permet un debug de la req dans la console
+    // Permet un debug de la req dans la console pour bien comprendre
     console.log(`url demandée  : ${req.url}`);
     next();
 });
