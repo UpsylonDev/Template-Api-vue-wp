@@ -2,7 +2,9 @@ require("babel-register")
 const morgan = require("morgan")("dev")
 var bodyParser = require("body-parser")
 const express = require("express")
+const configRouter = require('./config/configRoutes.json')
 const mysql = require("mysql")
+let usersRouter = express.Router()
 
 const app = express()
 
@@ -26,21 +28,25 @@ db.connect(err => {
 })
 
 // Première route ******************************************
-app.get("/", function (req, res) {
-    //  faire une requete
-    db.query("SELECT * FROM api1 WHERE id=?", [1], (err, result) => {
-        if (err) {
-            console.log(err.message);
-        } else {
-            res.send(" Résultat de la demande : " + result[0].name);
-            // pour info rerour dans la console
-            console.log("réponse retournée au client: " + result[0].name);
-        }
+app.use(configRouter.name, usersRouter)
+
+usersRouter
+    .route("/")
+    .get((req, res) => {
+        //  faire une requete
+        db.query("SELECT * FROM api1 WHERE id=?", [1], (err, result) => {
+            if (err) {
+                console.log(err.message);
+            } else {
+                res.send(" Résultat de la demande : " + result[0].name);
+                // pour info rerour dans la console
+                console.log("réponse retournée au client: " + result[0].name);
+            }
+        })
     })
-});
 app.listen(8080, () => {
     console.log("Lecture du port : 8080");
-});
+})
 
 // ************ DEBUG CONSOLE - A Supprimer en prod ***********
 app.use(function (req, res, next) {
