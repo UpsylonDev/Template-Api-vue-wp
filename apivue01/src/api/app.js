@@ -33,7 +33,7 @@ db.connect(err => {
 */
 app.use(configRouter.userEmail, usersRouter)
 usersRouter
-    .route("/") // revient à dire : "/" === "/api/v1/email""
+    .route("/email") // revient à dire : "/" === "/api/v1/email""
     .get((req, res) => {
         //  faire une requete préparée 
         db.query("SELECT * FROM api1 WHERE id=?", [1], (err, result) => {
