@@ -18,7 +18,9 @@ app.use(express.static('upsylon-X01/apivue01/public/images'))
 const config = require("./config/configDb.json");
 
 // relier l’App à la base de données  + test
-const db = mysql.createConnection({host: config.host, user: config.user, password: config.password, database: config.database})
+const db = mysql.createConnection(
+    {host: config.host, user: config.user, password: config.password, database: config.database}
+)
 db.connect(err => {
     if (err) {
         console.log(err.message);
@@ -27,35 +29,32 @@ db.connect(err => {
     }
 })
 
-// ***********Routeur ************************************************
-// Mettre l'adresse de base dans le router
+// ***********Routeur ************************************************ Mettre
+// l'adresse de base dans le router
 app.use(configRoutes.base, userRouter)
 
 /******************************************************************* */
 // récupérer tous les membres : http://localhost:8080/api/v1/users/
 userRouter
-.route('/users/')
-.get((req, res)=>{
-    try {
-        db.query("SELECT * FROM api1", (err, result)=>{
-            if (err) {
-                res.redirect('https://google.com')
-            } else {
-               res.send(result)
-            }
-        })
-    } catch (error) {
-        
-    }
-})
+    .route('/users/')
+    .get((req, res) => {
+        try {
+            db.query("SELECT * FROM api1", (err, result) => {
+                if (err) {
+                    res.redirect('https://google.com')
+                } else {
+                    res.send(result)
+                }
+            })
+        } catch (error) {}
+    })
 
-//  récupère un nom : http://localhost:8080/api/v1/name/
-// selon id dans le body
+//  récupère un nom : http://localhost:8080/api/v1/name/ selon id dans le body
 userRouter
     .route('/name/')
     .get((req, res) => {
         try {
-            if (req.body.id != Number(req.body.id) || req.body.id <= 0 ) {
+            if (req.body.id != Number(req.body.id) || req.body.id <= 0) {
                 console.log('ceci n\'est pas un nombre!')
                 res.send('Veuillez rentrer un nombre positif!!')
             } else {
@@ -74,7 +73,8 @@ userRouter
         }
     })
 
-    // AJOUTER un nom ou une seule valeure dans la base:  http://localhost:8080/api/v1/name/
+    // AJOUTER un nom ou une seule valeure dans la base:
+    // http://localhost:8080/api/v1/name/
     .post((req, res) => {
         try {
             // Vérifier que le nom n'est pas déjà pris
@@ -112,39 +112,42 @@ userRouter
             if (req.body.name) {
                 console.log('bon nommmm');
                 // Vérifier que le nom n'est pas déjà pris par son id
-            db.query("SELECT * FROM api1 WHERE id=?", [req.body.id], (err, result) => {
-                if (err) {
-                    res.redirect('https://google.com')
-                } else{
-                    // vérifier que l'Id n'est pas inconnue 
-                    if (result[0] != undefined) {
-                        // vérifier que ce nom n'existe pas déjà !
-                        // on tset aussi son id pour ne pas remettre à jour si cl'est le même nom
-                        db.query("SELECT * FROM api1 WHERE name=? AND id !=?", [req.body.name, req.body.id], (err, result)=>{
-                            if (err) {
-                                res.redirect('https://google.com')
-                            } else {
-                                if (result[0] != undefined ) {
-                                    res.send("Ce nom est déjà pris !")
+                db.query("SELECT * FROM api1 WHERE id=?", [req.body.id], (err, result) => {
+                    if (err) {
+                        res.redirect('https://google.com')
+                    } else {
+                        // vérifier que l'Id n'est pas inconnue
+                        if (result[0] != undefined) {
+                            // vérifier que ce nom n'existe pas déjà ! on tset aussi son id pour ne pas
+                            // remettre à jour si cl'est le même nom
+                            db.query("SELECT * FROM api1 WHERE name=? AND id !=?", [
+                                req.body.name, req.body.id
+                            ], (err, result) => {
+                                if (err) {
+                                    res.redirect('https://google.com')
                                 } else {
-                                    db.query("UPDATE api1 SET name = ? WHERE id = ? ", [req.body.name, req.body.id], (err, result )=>{
-                                        if (err) {
-                                            res.redirect('https://google.com')
-                                        } else {
-                                            res.send(" les modifications ont bien été prises en compte sur l'id : "  + req.body.id )
-                                        }
-                                    })
+                                    if (result[0] != undefined) {
+                                        res.send("Ce nom est déjà pris !")
+                                    } else {
+                                        db.query("UPDATE api1 SET name = ? WHERE id = ? ", [
+                                            req.body.name, req.body.id
+                                        ], (err, result) => {
+                                            if (err) {
+                                                res.redirect('https://google.com')
+                                            } else {
+                                                res.send(
+                                                    " les modifications ont bien été prises en compte sur l'id : " + req.body.id
+                                                )
+                                            }
+                                        })
+                                    }
                                 }
-                            }
-                        })
+                            })
+                        }
                     }
-                }
-            })
-                
-            } else {
-                
-            }
-            
+                })
+
+            } else {}
 
         } catch (error) {
             console.log(error.message);
@@ -152,7 +155,7 @@ userRouter
     })
 
 // ajouter toutes les données d'un membre (formulaire  complet)
-//http://localhost:8080/api/v1/addUser/
+// http://localhost:8080/api/v1/addUser/
 userRouter
     .route('/addUser/')
     .post((req, res) => {
@@ -171,17 +174,13 @@ userRouter
                     if (result[0] != undefined) {
                         res.send('Ce nom est déjà pris :')
                     } else {
-                        db.query(
-                            "INSERT INTO api1 SET ?",
-                            posted,
-                            (err, result) => {
-                                if (err) {
-                                    res.redirect('https://google.com')
-                                } else {
-                                    res.send('les données ont bien été ajoutées ')
-                                }
+                        db.query("INSERT INTO api1 SET ?", posted, (err, result) => {
+                            if (err) {
+                                res.redirect('https://google.com')
+                            } else {
+                                res.send('les données ont bien été ajoutées ')
                             }
-                        )
+                        })
                     }
                 }
             })
@@ -190,8 +189,8 @@ userRouter
         }
     })
 
-// Supprimer Un membre et ses données
-//http://localhost:8080/api/v1/supressUser/ 
+// Supprimer Un membre et ses données :
+// http://localhost:8080/api/v1/supressUser/
 userRouter
     .route('/supressUser/')
     .delete((req, res) => {
@@ -202,17 +201,13 @@ userRouter
                     res.redirect('https://google.com')
                 } else {
                     if (result[0] != undefined) {
-                        db.query(
-                            "DELETE FROM api1 WHERE id=?",
-                            [req.body.id],
-                            (err, result) => {
-                                if (err) {
-                                    res.redirect('https://google.com')
-                                } else {
-                                    res.send('Cet utilisateur à bien été supprimé')
-                                }
+                        db.query("DELETE FROM api1 WHERE id=?", [req.body.id], (err, result) => {
+                            if (err) {
+                                res.redirect('https://google.com')
+                            } else {
+                                res.send('Cet utilisateur à bien été supprimé')
                             }
-                        )
+                        })
                     } else {
                         res.send('Cet identifiant n\'existe pas  !')
                     }
@@ -222,6 +217,55 @@ userRouter
             console.log(error.message);
 
         }
+    })
+
+// changer de mot de passe
+userRouter
+    .route('/passChange/')
+    .put((req, res) => {
+        try {
+            // contôler le chiffre entré
+            if (req.body.id != Number(req.body.id) || req.body.id <= 0) {
+                res.send("Veillez entrer un Chiffre Positif")
+            } else {
+                // vérifier que l'id existe dans la base
+                db.query("SELECT * FROM api1 WHERE id = ?", [req.body.id], (err, result) => {
+                    if (err) {
+                        res.redirect("https://google.com")
+                    } else {
+                        if (result[0] == undefined) {
+                            res.send("Cet id n'esiste pas ")
+                        } else {
+                            // seletioner l'id demandé
+                            db.query("SELECT id FROM api1 WHERE id = ?", [req.body.id], (err, result) => {
+                                if (err) {
+                                    res.send('Cet id n\'existe pas !')
+                                } else {
+                                    // mettre à jour le mot de passe
+                                    db.query("UPDATE api1 SET password = ? WHERE id = ? ", [
+                                        req.body.pass, req.body.id
+                                    ], (err, result) => {
+                                        if (err) {
+                                            res.redirect('https://google.com')
+                                        } else {
+                                            res.send("Vos données ont bien été mises à Jour Bravo!")
+                                        }
+                                    })
+                                }
+
+                            })
+
+                        }
+
+                    }
+                })
+
+            }
+        } catch (error) {
+            console.log(error.message);
+
+        }
+
     })
 
 //********************************************************* */
