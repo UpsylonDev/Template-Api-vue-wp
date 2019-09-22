@@ -9,17 +9,16 @@ const mysql = require("mysql")
 const app = express()
 
 // MIDLEWARES
-app.use(morgan);
+app.use(morgan)
 app.use(bodyParser.urlencoded({extended: false}));
+// app.use(bodyParser.json)
 app.use(express.static('upsylon-X01/apivue01/public/images'))
 
 // Base de donnée  : récupération de la config
 const config = require("./config/configDb.json");
 
 // relier l’App à la base de données  + test
-const db = mysql.createConnection(
-    {host: config.host, user: config.user, password: config.password, database: config.database}
-)
+const db = mysql.createConnection({host: config.host, user: config.user, password: config.password, database: config.database})
 db.connect(err => {
     if (err) {
         console.log(err.message);
@@ -27,19 +26,38 @@ db.connect(err => {
         console.log("Etape A : connecté à la base : " + config.database);
     }
 })
+
+// ***********Routeur ************************************************
 // Mettre l'adresse de base dans le router
 app.use(configRoutes.base, userRouter)
-console.log(configRoutes.base);
 
-// Première route ***************** récupère un nom
-// selon id
+/******************************************************************* */
+// récupérer tous les membres : http://localhost:8080/api/v1/users/
+userRouter
+.route('/users/')
+.get((req, res)=>{
+    try {
+        db.query("SELECT * FROM api1", (err, result)=>{
+            if (err) {
+                res.redirect('https://google.com')
+            } else {
+               res.send(result)
+            }
+        })
+    } catch (error) {
+        
+    }
+})
+
+//  récupère un nom : http://localhost:8080/api/v1/name/
+// selon id dans le body
 userRouter
     .route('/name/')
     .get((req, res) => {
         try {
-            if (req.body.id != Number(req.body.id)) {
+            if (req.body.id != Number(req.body.id) || req.body.id <= 0 ) {
                 console.log('ceci n\'est pas un nombre!')
-                res.send('Veuillez rentrer un nombre!!')
+                res.send('Veuillez rentrer un nombre positif!!')
             } else {
                 //  faire une requete sur l'id
                 db.query("SELECT * FROM api1 WHERE id=?", [req.body.id], (err, result) => {
@@ -50,21 +68,18 @@ userRouter
                         res.send(" Résultat de la demande : " + result[0].name)
                     }
                 })
-
             }
         } catch (error) {
             console.log('une erreur est survenue :' + error.message)
         }
     })
 
-    // AJOUTER un nom ou une seule valeure dans la base
-
+    // AJOUTER un nom ou une seule valeure dans la base:  http://localhost:8080/api/v1/name/
     .post((req, res) => {
         try {
             // Vérifier que le nom n'est pas déjà pris
             db.query("SELECT * FROM api1 WHERE name=?", [req.body.name], (err, result) => {
                 if (err) {
-                    res.send('jarreteici')
                     // res.redirect('https://google.com')
                 } else {
                     if (result[0] != undefined) {
@@ -91,7 +106,53 @@ userRouter
         }
     })
 
-// ajouter tout un membre ( formulaire  complet)
+    // Modicication DU NOM d'un User par son id
+    .put((req, res) => {
+        try {
+            if (req.body.name) {
+                console.log('bon nommmm');
+                // Vérifier que le nom n'est pas déjà pris par son id
+            db.query("SELECT * FROM api1 WHERE id=?", [req.body.id], (err, result) => {
+                if (err) {
+                    res.redirect('https://google.com')
+                } else{
+                    // vérifier que l'Id n'est pas inconnue 
+                    if (result[0] != undefined) {
+                        // vérifier que ce nom n'existe pas déjà !
+                        // on tset aussi son id pour ne pas remettre à jour si cl'est le même nom
+                        db.query("SELECT * FROM api1 WHERE name=? AND id !=?", [req.body.name, req.body.id], (err, result)=>{
+                            if (err) {
+                                res.redirect('https://google.com')
+                            } else {
+                                if (result[0] != undefined ) {
+                                    res.send("Ce nom est déjà pris !")
+                                } else {
+                                    db.query("UPDATE api1 SET name = ? WHERE id = ? ", [req.body.name, req.body.id], (err, result )=>{
+                                        if (err) {
+                                            res.redirect('https://google.com')
+                                        } else {
+                                            res.send(" les modifications ont bien été prises en compte sur l'id : "  + req.body.id )
+                                        }
+                                    })
+                                }
+                            }
+                        })
+                    }
+                }
+            })
+                
+            } else {
+                
+            }
+            
+
+        } catch (error) {
+            console.log(error.message);
+        }
+    })
+
+// ajouter toutes les données d'un membre (formulaire  complet)
+//http://localhost:8080/api/v1/addUser/
 userRouter
     .route('/addUser/')
     .post((req, res) => {
@@ -101,7 +162,6 @@ userRouter
             surname: req.body.surname,
             email: req.body.email
         }
-
         try {
             // Vérifier que le nom n'est pas déjà pris
             db.query("SELECT * FROM api1 WHERE name=?", [req.body.name], (err, result) => {
@@ -127,11 +187,11 @@ userRouter
             })
         } catch (error) {
             console.log(error.message);
-
         }
     })
 
-// Supprimer Un membre est ses données 
+// Supprimer Un membre et ses données
+//http://localhost:8080/api/v1/supressUser/ 
 userRouter
     .route('/supressUser/')
     .delete((req, res) => {
@@ -164,9 +224,7 @@ userRouter
         }
     })
 
-
-
-    
+//********************************************************* */
 app.listen(8080, () => {
     console.log("Lecture du port : 8080");
 });
