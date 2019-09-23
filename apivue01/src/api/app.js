@@ -2,6 +2,7 @@ require("babel-register");
 const morgan = require("morgan")("dev");
 var bodyParser = require("body-parser");
 const express = require("express");
+var session = require('express-session')
 const userRouter = express.Router(); // permet de simplifier les chemins
 const configRoutes = require("./config/configRoutes.json");
 const mysql = require("mysql");
@@ -14,6 +15,12 @@ app.use(morgan);
 app.use(bodyParser.urlencoded({ extended: false }));
 // app.use(bodyParser.json)
 app.use(express.static("upsylon-X01/apivue01/public/images"));
+app.use(session({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false }
+}))
 
 // Base de donnée  : récupération de la config
 const config = require("./config/configDb.json");
@@ -33,6 +40,10 @@ db.connect(err => {
   }
 });
 
+ var data = {
+   texte : "coucou",
+   prenom : "yann"
+ }
 // ***********Routeur ************************************************ Mettre
 // l'adresse de base dans le router
 app.use(configRoutes.base, userRouter);
@@ -45,7 +56,11 @@ userRouter.route("/users/").get((req, res) => {
       if (err) {
         res.redirect("https://google.com");
       } else {
-        res.send(result);
+        res.send(result)
+        // test de récupération de la cession 
+         let test = req.session.donnee = data
+        console.log(req.session.donnee.prenom)
+        console.log(data)
       }
     });
   } catch (error) {}
@@ -118,7 +133,6 @@ userRouter
   .put((req, res) => {
     try {
       if (req.body.name) {
-        console.log("bon nommmm");
         // Vérifier que le nom n'est pas déjà pris par son id
         db.query(
           "SELECT * FROM api1 WHERE id=?",
